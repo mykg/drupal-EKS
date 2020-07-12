@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgresql
+  labels:
+    env: production
+spec:
+  ports:
+    - port: 5432
+  selector:
+    env: production
+    tier: postgreSQL
+  type: ClusterIP
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: aws-efs
+provisioner: my-efs/aws-efs
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-claim
+  annotations:
+    volume.beta.kubernetes.io/storage-class: "aws-efs"
+  labels:
+    env: production
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql
+  labels:
+    env: production
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      env: production
+      tier: postgreSQL
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        env: production
+        tier: postgreSQL
+    spec:
+      containers:
+        - image: postgres:latest
+          name: postgresql
+          env:
+            - name: POSTGRES_USER
+              value: drupal
+            - name: POSTGRES_DB
+              value: drupal_production
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                 name: db-pass
+                 key: password
+          ports:
+            - containerPort: 5432
+              name: postgresql
+          volumeMounts:
+            - name: postgresql
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgresql
+          persistentVolumeClaim:
+            claimName: postgres-claim

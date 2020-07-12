@@ -1,0 +1,10 @@
+secretGenerator:
+- name: db-pass
+  literals:
+  - password=1234
+  
+namespace: myns
+
+resources:
+  - postgresql.yml 
+  - drupal-deploy.yml
