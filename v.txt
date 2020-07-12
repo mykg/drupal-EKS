@@ -1,7 +1,0 @@
-        volumeMounts:    
-            - name: drupal-persistent-storage1
-              mountPath: /var/www/html/
-      volumes:
-      - name: drupal-persistent-storage1
-        persistentVolumeClaim:
-          claimName: drupal-pv-claim1
