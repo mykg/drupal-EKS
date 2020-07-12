@@ -1,0 +1,21 @@
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: aws-efs
+provisioner: my-efs/aws-efs
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-claim
+  annotations:
+    volume.beta.kubernetes.io/storage-class: "aws-efs"
+  labels:
+    env: production
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
